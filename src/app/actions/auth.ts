@@ -5,68 +5,69 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export async function loginUser(formData: FormData) {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  try {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
-  if (!email || !password) {
-    return { error: "Email and password are required" };
-  }
+    if (!email || !password) {
+      return { error: "Email and password are required" };
+    }
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-  if (!user || user.password !== password) {
-    return { error: "Invalid credentials" };
-  }
+    if (!user || user.password !== password) {
+      return { error: "Invalid credentials" };
+    }
 
-  const cookieStore = await cookies();
-  cookieStore.set("userId", user.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-  });
+    const cookieStore = await cookies();
+    cookieStore.set("userId", user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
 
-  // Return redirect URL to be handled by client
-  if (user.role === "ADMIN") {
-    return { redirectTo: "/admin" };
-  } else if (user.role === "SUPERVISOR") {
-    return { redirectTo: "/supervisor" };
-  } else if (user.role === "USER") {
-    return { redirectTo: "/dashboard" };
-  } else {
-    return { error: "Your account is pending approval by an admin." };
+    if (user.role === "ADMIN") {
+      return { redirectTo: "/admin" };
+    } else if (user.role === "SUPERVISOR") {
+      return { redirectTo: "/supervisor" };
+    } else if (user.role === "USER") {
+      return { redirectTo: "/dashboard" };
+    } else {
+      return { error: "Your account is pending approval by an admin." };
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Server error: ${msg}` };
   }
 }
 
 export async function registerUser(formData: FormData) {
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  try {
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
-  if (!name || !email || !password) {
-    return { error: "Name, email, and password are required" };
+    if (!name || !email || !password) {
+      return { error: "Name, email, and password are required" };
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return { error: "Email already in use" };
+    }
+
+    await prisma.user.create({
+      data: { name, email, password, role: "PENDING" },
+    });
+
+    return { success: "Account created! Please wait for admin approval before logging in." };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Server error: ${msg}` };
   }
-
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (existingUser) {
-    return { error: "Email already in use" };
-  }
-
-  await prisma.user.create({
-    data: {
-      name,
-      email,
-      password,
-      role: "PENDING",
-    },
-  });
-
-  return { success: "Account created successfully! Please wait for admin approval before logging in." };
 }
 
 export async function logoutUser() {
