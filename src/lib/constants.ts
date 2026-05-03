@@ -1,0 +1,71 @@
+export const PROJECT_STAGES = [
+  {
+    id: "quotation",
+    label: "Quotation",
+    checklist: ["Vendor Finalised", "Agreement Signed"],
+  },
+  {
+    id: "design-work",
+    label: "Design Work",
+    checklist: [
+      "Requirement Gathering",
+      "Furniture Layout",
+      "3D Designs",
+      "2D Working Drawings",
+      "Design Doc Sign",
+      "Design File Onsite",
+    ],
+  },
+  {
+    id: "floor-protection",
+    label: "Floor Protection",
+    checklist: ["Installation"],
+  },
+  {
+    id: "false-ceiling",
+    label: "False Ceiling",
+    checklist: ["Channels", "Gypsum Board", "Light Cuttings"],
+  },
+  {
+    id: "electrical",
+    label: "Electrical",
+    checklist: ["Wiring", "Switches Routing", "Lights Installation"],
+  },
+  {
+    id: "woodwork",
+    label: "Woodwork",
+    checklist: [
+      "Onsite: Carcuss Material",
+      "Onsite: Plywood",
+      "Onsite: Liners Pasting",
+      "Onsite: Hardware Installation",
+      "Onsite: Laminates Pasting",
+      "Onsite: Doors Fittings",
+      "Onsite: Glass Fittings",
+      "Onsite: Snags",
+      "Onsite: Handover",
+      "Factory: Material Procure",
+      "Factory: Before Dispatch",
+      "Factory: Carcus Installation",
+      "Factory: Doors Fittings",
+      "Factory: Glass Fittings",
+      "Factory: Snags",
+      "Factory: Handover",
+    ],
+  },
+  {
+    id: "painting",
+    label: "Painting",
+    checklist: ["Putty", "Primer", "Main Coat"],
+  },
+  {
+    id: "deep-cleaning",
+    label: "Deep Cleaning",
+    checklist: ["Deep Cleaning"],
+  },
+  {
+    id: "handover",
+    label: "Handover",
+    checklist: ["Handover Completed"],
+  },
+];

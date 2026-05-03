@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("PENDING") // ADMIN, SUPERVISOR, USER, PENDING
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientProjects     Project[] @relation("ClientProjects")
+  supervisedProjects Project[] @relation("SupervisorProjects")
+}
+
+model Project {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  progress       Int      @default(0) // 0 to 100
+  checklist      String?  // JSON string storing checklist completion states
+  totalBudget    Float    @default(0)
+  fundsPooled    Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  clientId       String
+  client         User     @relation("ClientProjects", fields: [clientId], references: [id])
+  
+  supervisorId   String?
+  supervisor     User?    @relation("SupervisorProjects", fields: [supervisorId], references: [id])
+
+  updates        Update[]
+  payments       Payment[]
+}
+
+model Update {
+  id          String   @id @default(cuid())
+  description    String
+  imageUrl       String?
+  stage          String   @default("General")
+  manpowerMestri Int      @default(0)
+  manpowerHelper Int      @default(0)
+  progress       Int      @default(0) // Stage specific progress logged on this day
+  createdAt      DateTime @default(now())
+  remarks        String?
+  
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  amount      Float
+  status      String   @default("COMPLETED")
+  createdAt   DateTime @default(now())
+
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+}
