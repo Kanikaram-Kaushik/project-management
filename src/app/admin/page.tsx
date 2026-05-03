@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser, logoutUser } from "@/app/actions/auth";
 import { approveUserRole, createProject } from "@/app/actions/admin";
 import { redirect } from "next/navigation";
-import type { User, Project } from "@prisma/client"; 
+
+type User = { id: string; name: string; email: string; role: string; password: string; createdAt: Date; updatedAt: Date };
+type Project = { id: string; title: string; description: string | null; progress: number; checklist: string | null; totalBudget: number; fundsPooled: number; createdAt: Date; updatedAt: Date; clientId: string; supervisorId: string | null };
 
 export default async function AdminDashboard() {
   const currentUser = await getCurrentUser();
