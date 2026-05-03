@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser, logoutUser } from "@/app/actions/auth";
 import { approveUserRole, createProject } from "@/app/actions/admin";
 import { redirect } from "next/navigation";
+import type { User, Project } from "@prisma/client"; 
 
 export default async function AdminDashboard() {
   const currentUser = await getCurrentUser();
@@ -45,7 +46,7 @@ export default async function AdminDashboard() {
             <p className="text-muted" style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>No pending accounts.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-              {pendingUsers.map(user => (
+              {pendingUsers.map((user: User) => (
                 <div key={user.id} className="card" style={{ padding: '1rem', background: 'rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <h4 style={{ margin: 0 }}>{user.name}</h4>
@@ -81,7 +82,7 @@ export default async function AdminDashboard() {
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Assign Client</label>
                 <select name="clientId" className="input-field" required>
                   <option value="">-- Select Client --</option>
-                  {allClients.map(c => (
+                  {allClients.map((c: User) => (
                     <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
                   ))}
                 </select>
@@ -90,7 +91,7 @@ export default async function AdminDashboard() {
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Assign Supervisor (Optional)</label>
                 <select name="supervisorId" className="input-field">
                   <option value="">-- None --</option>
-                  {allSupervisors.map(s => (
+                  {allSupervisors.map((s: User) => (
                     <option key={s.id} value={s.id}>{s.name} ({s.email})</option>
                   ))}
                 </select>
@@ -106,7 +107,7 @@ export default async function AdminDashboard() {
             <p className="text-muted" style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>No projects created yet.</p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-              {projects.map(p => (
+              {projects.map((p: Project & { client: User; supervisor: User | null }) => (
                 <div key={p.id} className="card" style={{ padding: '1rem', background: 'rgba(0,0,0,0.02)' }}>
                   <h4>{p.title}</h4>
                   <p className="text-muted" style={{ fontSize: '0.8rem', marginBottom: '0.5rem' }}>{p.description}</p>
