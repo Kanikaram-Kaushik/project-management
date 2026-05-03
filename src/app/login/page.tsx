@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { loginUser, registerUser } from "@/app/actions/auth";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,6 +21,8 @@ export default function LoginPage() {
       const result = await loginUser(formData);
       if (result?.error) {
         setError(result.error);
+      } else if (result?.redirectTo) {
+        router.push(result.redirectTo);
       }
     } else {
       const result = await registerUser(formData);

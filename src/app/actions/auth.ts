@@ -28,13 +28,13 @@ export async function loginUser(formData: FormData) {
     maxAge: 60 * 60 * 24 * 7, // 1 week
   });
 
-  // Redirect based on role
+  // Return redirect URL to be handled by client
   if (user.role === "ADMIN") {
-    redirect("/admin");
+    return { redirectTo: "/admin" };
   } else if (user.role === "SUPERVISOR") {
-    redirect("/supervisor");
+    return { redirectTo: "/supervisor" };
   } else if (user.role === "USER") {
-    redirect("/dashboard");
+    return { redirectTo: "/dashboard" };
   } else {
     return { error: "Your account is pending approval by an admin." };
   }
