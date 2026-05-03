@@ -16,6 +16,9 @@ export default async function SupervisorDashboard() {
       updates: {
         orderBy: { createdAt: "desc" },
       },
+      payments: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 

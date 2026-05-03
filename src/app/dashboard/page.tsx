@@ -16,6 +16,9 @@ export default async function ClientDashboard() {
       updates: {
         orderBy: { createdAt: "desc" },
       },
+      payments: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 

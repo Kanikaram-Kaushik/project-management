@@ -1,18 +1,19 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
+const tursoUrl = process.env.TURSO_DATABASE_URL || 'file:./dev.db';
+const tursoAuthToken = process.env.TURSO_AUTH_TOKEN;
 
 const adapter = new PrismaLibSql({
-  url: 'file:./dev.db',
+  url: tursoUrl,
+  authToken: tursoAuthToken,
 })
-
-// In dev, we normally cache the PrismaClient instance on globalThis to avoid 
-// connection limit exhaustion. But to clear the stale broken client without 
-// requiring a server restart, we will temporarily overwrite the cache.
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Force a new instance to clear the stale cache
-globalForPrisma.prisma = new PrismaClient({ adapter })
-export const prisma = globalForPrisma.prisma
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = globalForPrisma.prisma || new PrismaClient({ adapter })
+}
+
+export const prisma = globalForPrisma.prisma || new PrismaClient({ adapter })

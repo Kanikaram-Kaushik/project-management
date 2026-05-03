@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { PROJECT_STAGES } from "@/lib/constants";
-import { uploadProgressUpdate, toggleChecklistItem, updateProjectProgress } from "@/app/actions/supervisor";
-import { addRemark } from "@/app/actions/client";
+import { uploadProgressUpdate, toggleChecklistItem, updateProjectProgress, requestPayment, updateProjectBudget } from "@/app/actions/supervisor";
+import { addRemark, approvePayment } from "@/app/actions/client";
 
 export default function ProjectTracker({ project, isSupervisor }: { project: any, isSupervisor: boolean }) {
   const [activeTab, setActiveTab] = useState(PROJECT_STAGES[0].id);
@@ -27,7 +27,7 @@ export default function ProjectTracker({ project, isSupervisor }: { project: any
           <form action={updateProjectProgress} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <input type="hidden" name="projectId" value={project.id} />
             <label style={{ fontSize: '0.8rem' }}>Overall %</label>
-            <input type="number" name="progress" min="0" max="100" defaultValue={project.progress} className="input-field" style={{ width: '70px', padding: '0.25rem' }} />
+            <input key={project.progress} type="number" name="progress" min="0" max="100" defaultValue={project.progress} className="input-field" style={{ width: '70px', padding: '0.25rem' }} />
             <button type="submit" className="btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}>Save</button>
           </form>
         )}
@@ -66,8 +66,103 @@ export default function ProjectTracker({ project, isSupervisor }: { project: any
             {stage.label}
           </button>
         ))}
+        <button
+          onClick={() => setActiveTab("financials")}
+          style={{
+            padding: '0.5rem 1rem',
+            background: activeTab === "financials" ? 'var(--accent)' : 'transparent',
+            color: activeTab === "financials" ? 'black' : 'var(--foreground)',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            fontSize: '0.85rem',
+            fontWeight: activeTab === "financials" ? 'bold' : 'normal',
+          }}
+        >
+          Financials
+        </button>
       </div>
 
+      {activeTab === "financials" ? (
+        <div style={{ padding: '1rem', background: 'var(--background)', borderRadius: '4px', border: '1px solid var(--border)' }}>
+          <h5 style={{ marginBottom: '1.5rem' }}>Financial Overview</h5>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: '4px', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.85rem', margin: 0 }} className="text-muted">Total Budget</p>
+              {isSupervisor ? (
+                <form action={updateProjectBudget} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.5rem', gap: '0.5rem' }}>
+                  <input type="hidden" name="projectId" value={project.id} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>₹</span>
+                    <input key={project.totalBudget} type="number" name="totalBudget" min="0" step="0.01" defaultValue={project.totalBudget} className="input-field" style={{ width: '100px', padding: '0.25rem', textAlign: 'center', fontWeight: 'bold' }} />
+                  </div>
+                  <button type="submit" className="btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>Update</button>
+                </form>
+              ) : (
+                <h3 style={{ margin: '0.5rem 0 0 0' }}>₹{project.totalBudget?.toLocaleString() || 0}</h3>
+              )}
+            </div>
+            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: '4px', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.85rem', margin: 0 }} className="text-muted">Funds Pooled</p>
+              <h3 style={{ margin: '0.5rem 0 0 0', color: 'var(--accent)' }}>₹{project.fundsPooled?.toLocaleString() || 0}</h3>
+            </div>
+            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: '4px', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.85rem', margin: 0 }} className="text-muted">Remaining Balance</p>
+              <h3 style={{ margin: '0.5rem 0 0 0' }}>₹{(project.totalBudget - project.fundsPooled)?.toLocaleString() || 0}</h3>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isSupervisor ? '1fr 1fr' : '1fr', gap: '2rem' }}>
+            {isSupervisor && (
+              <div>
+                <h6>Request Payment</h6>
+                <form action={requestPayment} style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                  <input type="hidden" name="projectId" value={project.id} />
+                  <input type="number" name="amount" min="1" step="0.01" className="input-field" placeholder="Amount to request" required />
+                  <button type="submit" className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Request</button>
+                </form>
+              </div>
+            )}
+            
+            <div>
+              <h6>Payment History & Requests</h6>
+              {(!project.payments || project.payments.length === 0) ? (
+                <p className="text-muted" style={{ fontSize: '0.85rem', marginTop: '1rem' }}>No payment requests found.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+                  {project.payments.map((payment: any) => (
+                    <div key={payment.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                      <div>
+                        <strong style={{ fontSize: '1rem' }}>₹{payment.amount.toLocaleString()}</strong>
+                        <p style={{ fontSize: '0.8rem', margin: '0.25rem 0 0 0' }} className="text-muted">Requested on {new Date(payment.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        {payment.status === "COMPLETED" ? (
+                          <span style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem', background: 'var(--accent)', color: 'black', borderRadius: '4px', fontWeight: 'bold' }}>Pooled</span>
+                        ) : (
+                          <>
+                            {isSupervisor ? (
+                              <span style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem', background: 'transparent', color: 'var(--foreground)', border: '1px solid var(--border)', borderRadius: '4px' }}>Pending Client</span>
+                            ) : (
+                              <form action={approvePayment}>
+                                <input type="hidden" name="paymentId" value={payment.id} />
+                                <input type="hidden" name="projectId" value={project.id} />
+                                <input type="hidden" name="amount" value={payment.amount} />
+                                <button type="submit" className="btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}>Pay & Pool</button>
+                              </form>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
         {/* Left Column: Checklist */}
         <div>
@@ -185,6 +280,7 @@ export default function ProjectTracker({ project, isSupervisor }: { project: any
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
