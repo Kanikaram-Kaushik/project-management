@@ -43,7 +43,8 @@ export default async function SupervisorDashboard() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
-              {projects.map(project => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              {(projects as any[]).map((project: any) => (
                 <ProjectTracker key={project.id} project={project} isSupervisor={true} />
               ))}
             </div>

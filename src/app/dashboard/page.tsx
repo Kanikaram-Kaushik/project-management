@@ -40,7 +40,8 @@ export default async function ClientDashboard() {
               <p className="text-muted" style={{ fontSize: '0.9rem' }}>Awaiting interior project initiation. An admin will assign your project soon.</p>
             </div>
           ) : (
-            projects.map(project => (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (projects as any[]).map((project: any) => (
               <ProjectTracker key={project.id} project={project} isSupervisor={false} />
             ))
           )}
